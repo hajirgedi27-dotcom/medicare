@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status, pager, csrf %}
+{% block title %}{{ 'My Appointments' if g.user['role'] == 'doctor' else 'Appointments' }}{% endblock %}
+{% block actions %}{% if g.user['role'] != 'doctor' %}<a class="btn" href="{{ url_for('appointments.create') }}">+ Book appointment</a>{% endif %}{% endblock %}
+{% block content %}
+<form method="get" class="filters card">
+  <input name="q" value="{{ q }}" placeholder="Patient name, no. or phone…">
+  <input type="date" name="date" value="{{ day }}">
+  {% if g.user['role'] != 'doctor' %}
+  <select name="doctor"><option value="">All doctors</option>
+    {% for d in doctors %}<option value="{{ d.id }}" {{ 'selected' if doctor|string == d.id|string }}>{{ d.full_name }}</option>{% endfor %}</select>
+  {% endif %}
+  <select name="status"><option value="">All statuses</option>
+    {% for s in ['scheduled','completed','cancelled'] %}<option value="{{ s }}" {{ 'selected' if status == s }}>{{ s|capitalize }}</option>{% endfor %}</select>
+  <button class="btn">Filter</button>
+  <a class="btn btn-light" href="{{ url_for('appointments.index', date=today) }}">Today</a>
+  <a class="btn btn-light" href="{{ url_for('appointments.index') }}">Reset</a>
+</form>
+<div class="card">
+  <p class="muted">{{ total }} appointment{{ '' if total == 1 else 's' }}</p>
+  <div class="table-wrap"><table>
+    <tr><th>Date</th><th>Time</th><th>Patient</th><th>Doctor</th><th>Department</th><th>Reason</th><th>Status</th><th></th></tr>
+    {% for a in rows %}
+    <tr>
+      <td>{{ a.appt_date }}</td><td>{{ a.appt_time }}</td>
+      <td><a href="{{ url_for('patients.view', pid=a.patient_id) }}">{{ a.patient_name }}</a></td>
+      <td>{{ a.doctor_name }}</td><td>{{ a.department or '—' }}</td><td>{{ a.reason or '—' }}</td>
+      <td>{{ status(a.status) }}</td>
+      <td class="right actions">
+        {% if g.user['role'] == 'doctor' and a.status != 'cancelled' %}
+          <a class="btn btn-sm" href="{{ url_for('consultations.record', aid=a.id) }}">{{ 'View / edit' if a.status == 'completed' else 'Consult' }}</a>
+        {% endif %}
+        {% if a.status == 'scheduled' %}
+        <form method="post" action="{{ url_for('appointments.cancel', aid=a.id) }}" class="cancel-form">
+          {{ csrf() }}<input type="hidden" name="cancel_reason" value="">
+          <button class="btn btn-danger btn-sm">Cancel</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}<tr><td colspan="8" class="muted center">No appointments found.</td></tr>{% endfor %}
+  </table></div>
+  {{ pager(page, pages, 'appointments.index', q=q, date=day, doctor=doctor, status=status) }}
+</div>
+{% endblock %}
