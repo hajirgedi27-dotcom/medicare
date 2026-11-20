@@ -1,25 +1,11 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import textarea, csrf, status %}
-{% block title %}Consultation{% endblock %}
-{% block heading %}Consultation – {{ patient.full_name }}{% endblock %}
+{% from '_macros.html' import field, textarea, csrf %}
+{% block title %}{{ 'Edit department' if editing else 'Add department' }}{% endblock %}
 {% block content %}
-<div class="card">
-  <div class="details">
-    <div><span>Patient</span>{{ patient.full_name }} ({{ patient.patient_no }})</div>
-    <div><span>Gender / DOB</span>{{ patient.gender }} · {{ patient.date_of_birth or '—' }}</div>
-    <div><span>Appointment</span>{{ appt.appt_date }} at {{ appt.appt_time }} {{ status(appt.status) }}</div>
-    <div><span>Reason for visit</span>{{ appt.reason or '—' }}</div>
-    <div class="wide"><span>Allergies</span><b class="{{ 'danger-text' if patient.allergies }}">{{ patient.allergies or 'None recorded' }}</b></div>
-  </div>
-</div>
-<form method="post" class="card">
+<form method="post" class="card narrow">
   {{ csrf() }}
-  {{ textarea('Symptoms / presenting complaints', 'symptoms', c.symptoms if c else '', 3) }}
-  {{ textarea('Diagnosis', 'diagnosis', c.diagnosis if c else '', 3, required=True) }}
-  {{ textarea('Prescription (drug, dose, frequency, duration – one per line)', 'prescription', c.prescription if c else '', 5) }}
-  {{ textarea('Additional notes / follow-up', 'notes', c.notes if c else '', 3) }}
-  <div class="form-actions"><button class="btn">Save &amp; mark completed</button>
-  <a class="btn btn-light" href="{{ url_for('patients.view', pid=patient.id) }}">Patient history</a>
-  <a class="btn btn-light" href="{{ url_for('appointments.index') }}">Back</a></div>
+  {{ field('Name', 'name', d.name, required=True) }}
+  {{ textarea('Description', 'description', d.description) }}
+  <div class="form-actions"><button class="btn">Save</button><a class="btn btn-light" href="{{ url_for('departments.index') }}">Cancel</a></div>
 </form>
 {% endblock %}
