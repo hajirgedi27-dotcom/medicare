@@ -1,0 +1,17 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Prescription – {{ c.patient_name }}</title>
+<style>
+body{font-family:Arial,sans-serif;max-width:720px;margin:30px auto;color:#111}
+h1{margin:0;color:#0f766e}hr{border:0;border-top:2px solid #0f766e;margin:12px 0}
+.row{display:flex;justify-content:space-between;margin:4px 0}.box{border:1px solid #ccc;padding:12px;min-height:60px;white-space:pre-wrap}
+h3{margin:18px 0 6px}.sig{margin-top:60px}@media print{.noprint{display:none}}
+</style></head><body>
+<h1>{{ hospital_name }}</h1><div>Prescription / Consultation Summary</div><hr>
+<div class="row"><span><b>Patient:</b> {{ c.patient_name }} ({{ c.patient_no }})</span><span><b>Date:</b> {{ c.appt_date }}</span></div>
+<div class="row"><span><b>Gender:</b> {{ c.gender }} &nbsp; <b>DOB:</b> {{ c.date_of_birth or '—' }}</span><span><b>Doctor:</b> Dr. {{ c.doctor_name }}</span></div>
+<h3>Diagnosis</h3><div class="box">{{ c.diagnosis }}</div>
+<h3>Prescription</h3><div class="box">{{ c.prescription or '—' }}</div>
+{% if c.notes %}<h3>Notes</h3><div class="box">{{ c.notes }}</div>{% endif %}
+<div class="sig">Doctor's signature: ______________________</div>
+<p class="noprint"><button onclick="window.print()">Print</button></p>
+</body></html>
