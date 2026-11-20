@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf %}
+
+{% block title %}Sign in{% endblock %}
+
+{% block auth %}
+
+<form method="post" class="stack">
+
+    {{ csrf() }}
+
+    <!-- Username or Email -->
+    <div class="field">
+        <label for="username">Username or Email</label>
+
+        <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter your username or email"
+            autofocus
+            required
+            autocomplete="username"
+        >
+    </div>
+
+    <!-- Password -->
+    <div class="field">
+        <label for="password">Password</label>
+
+        <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+        >
+    </div>
+
+    <!-- Sign In Button -->
+    <button type="submit" class="btn btn-block">
+        Sign in
+    </button>
+
+    <!-- Forgot Password -->
+    <a class="center muted" href="{{ url_for('auth.forgot') }}">
+        Forgot password?
+    </a>
+
+</form>
+
+{% endblock %}
