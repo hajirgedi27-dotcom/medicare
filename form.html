@@ -1,38 +1,23 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import field, select, csrf %}
-{% block title %}{{ 'Edit doctor' if editing else 'Add doctor' }}{% endblock %}
+{% from '_macros.html' import field, select, textarea, csrf %}
+{% block title %}{{ 'Edit patient' if editing else 'Register patient' }}{% endblock %}
 {% block content %}
 <form method="post" class="card">
   {{ csrf() }}
   <div class="form-grid">
-    {{ field('Full name', 'full_name', d.full_name, required=True) }}
-    {% if not editing %}
-      {{ field('Username', 'username', d.username, required=True) }}
-      {{ field('Password', 'password', '', type='text', help='Leave blank to auto-generate. The doctor must change it on first login.') }}
-    {% endif %}
-    {{ field('Email', 'email', d.email, type='email', help='Login details and appointment alerts are sent here.') }}
-    {{ select('Department', 'department_id', dept_options, d.department_id) }}
-    {{ field('Specialization', 'specialization', d.specialization) }}
-    {{ field('Phone', 'phone', d.phone) }}
-    {{ field('Licence no.', 'license_no', d.license_no) }}
+    {{ field('Full name', 'full_name', p.full_name, required=True) }}
+    {{ select('Gender', 'gender', [('Male','Male'),('Female','Female'),('Other','Other')], p.gender, required=True) }}
+    {{ field('Date of birth', 'date_of_birth', p.date_of_birth, type='date') }}
+    {{ field('Phone', 'phone', p.phone, required=True, placeholder='07XX XXX XXX') }}
+    {{ field('Email', 'email', p.email, type='email', help='Used for appointment confirmations and reminders.') }}
+    {{ field('National ID / Passport', 'national_id', p.national_id) }}
+    {{ select('Blood group', 'blood_group', blood_options, p.blood_group) }}
+    {{ field('Address', 'address', p.address) }}
+    {{ field('Next of kin', 'next_of_kin', p.next_of_kin) }}
+    {{ field('Next of kin phone', 'next_of_kin_phone', p.next_of_kin_phone) }}
   </div>
-
-  <section class="card" style="margin-top:1rem; padding:1rem;">
-    <h3 style="margin-top:0;">Weekly availability</h3>
-    <p class="muted">Set the days and hours when this doctor accepts appointments. Appointment slots are generated every 30 minutes within these hours.</p>
-    <div style="display:grid;gap:.65rem;">
-      {% for day, label in weekdays %}
-      <div style="display:grid;grid-template-columns:minmax(110px,1fr) minmax(110px,1fr) minmax(110px,1fr);gap:.75rem;align-items:center;border-bottom:1px solid var(--line, #e5e7eb);padding:.55rem 0;">
-        <label style="display:flex;align-items:center;gap:.5rem;margin:0;">
-          <input type="checkbox" name="schedule_{{ day }}_enabled" {% if schedule[day].enabled %}checked{% endif %}>
-          <strong>{{ label }}</strong>
-        </label>
-        <input type="time" name="schedule_{{ day }}_start" value="{{ schedule[day].start_time }}" aria-label="{{ label }} start time">
-        <input type="time" name="schedule_{{ day }}_end" value="{{ schedule[day].end_time }}" aria-label="{{ label }} end time">
-      </div>
-      {% endfor %}
-    </div>
-  </section>
-  <div class="form-actions"><button class="btn">Save</button><a class="btn btn-light" href="{{ url_for('doctors.index') }}">Cancel</a></div>
+  {{ textarea('Known allergies', 'allergies', p.allergies, 2) }}
+  <div class="form-actions"><button class="btn">Save</button>
+  <a class="btn btn-light" href="{{ url_for('patients.index') }}">Cancel</a></div>
 </form>
 {% endblock %}
