@@ -1,30 +1,18 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import pager %}
-{% block title %}Patients{% endblock %}
-{% block actions %}{% if g.user['role'] != 'doctor' %}<a class="btn" href="{{ url_for('patients.create') }}">+ Register patient</a>{% endif %}{% endblock %}
+{% from '_macros.html' import csrf %}
+{% block title %}Staff Accounts{% endblock %}
+{% block actions %}<a class="btn" href="{{ url_for('users.create') }}">+ Add staff account</a>{% endblock %}
 {% block content %}
-<form method="get" class="filters card">
-  <input name="q" value="{{ q }}" placeholder="Search name, phone, patient no, ID, email…">
-  <select name="gender"><option value="">All genders</option>
-    {% for g_ in ['Male','Female','Other'] %}<option {{ 'selected' if gender == g_ }}>{{ g_ }}</option>{% endfor %}</select>
-  <select name="blood_group"><option value="">All blood groups</option>
-    {% for b in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}<option {{ 'selected' if blood == b }}>{{ b }}</option>{% endfor %}</select>
-  <button class="btn">Search</button>
-  <a class="btn btn-light" href="{{ url_for('patients.index') }}">Reset</a>
-</form>
-<div class="card">
-  <p class="muted">{{ total }} patient{{ '' if total == 1 else 's' }} found</p>
-  <div class="table-wrap"><table>
-    <tr><th>No.</th><th>Name</th><th>Gender</th><th>Phone</th><th>Email</th><th>Blood</th><th></th></tr>
-    {% for p in rows %}
-    <tr>
-      <td>{{ p.patient_no }}</td>
-      <td><a href="{{ url_for('patients.view', pid=p.id) }}">{{ p.full_name }}</a></td>
-      <td>{{ p.gender }}</td><td>{{ p.phone }}</td><td>{{ p.email or '—' }}</td><td>{{ p.blood_group or '—' }}</td>
-      <td class="right"><a class="btn btn-light btn-sm" href="{{ url_for('patients.view', pid=p.id) }}">Open</a></td>
-    </tr>
-    {% else %}<tr><td colspan="7" class="muted center">No patients found.</td></tr>{% endfor %}
-  </table></div>
-  {{ pager(page, pages, 'patients.index', q=q, gender=gender, blood_group=blood) }}
-</div>
+<div class="card"><p class="muted">Administrators and receptionists. Doctor accounts are managed under <a href="{{ url_for('doctors.index') }}">Doctors</a>.</p>
+<div class="table-wrap"><table>
+  <tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr>
+  {% for u in rows %}
+  <tr><td>{{ u.full_name }}</td><td>{{ u.username }}</td><td>{{ u.email or '—' }}</td><td>{{ u.role|capitalize }}</td>
+  <td><span class="badge badge-{{ 'scheduled' if u.is_active else 'cancelled' }}">{{ 'Active' if u.is_active else 'Inactive' }}</span></td>
+  <td class="right actions">
+    <form method="post" action="{{ url_for('users.reset_password', uid=u.id) }}" onsubmit="return confirm('Generate a new temporary password?')">{{ csrf() }}<button class="btn btn-light btn-sm">Reset password</button></form>
+    {% if u.id != g.user['id'] %}<form method="post" action="{{ url_for('users.toggle', uid=u.id) }}">{{ csrf() }}<button class="btn btn-light btn-sm">{{ 'Deactivate' if u.is_active else 'Activate' }}</button></form>{% endif %}
+  </td></tr>
+  {% endfor %}
+</table></div></div>
 {% endblock %}
