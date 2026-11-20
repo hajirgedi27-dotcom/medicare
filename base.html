@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Dashboard{% endblock %} · {{ hospital_name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if g.user %}
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">✚ {{ hospital_name }}</div>
+    <nav>
+      {% set r = g.user['role'] %}
+      <a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.endpoint == 'dashboard.index' }}">Dashboard</a>
+      <a href="{{ url_for('appointments.index') }}" class="{{ 'active' if request.blueprint == 'appointments' }}">{{ 'My Appointments' if r == 'doctor' else 'Appointments' }}</a>
+      <a href="{{ url_for('patients.index') }}" class="{{ 'active' if request.blueprint == 'patients' }}">Patients</a>
+      {% if r != 'doctor' %}
+      <a href="{{ url_for('doctors.index') }}" class="{{ 'active' if request.blueprint == 'doctors' }}">Doctors</a>
+      <a href="{{ url_for('departments.index') }}" class="{{ 'active' if request.blueprint == 'departments' }}">Departments</a>
+      {% endif %}
+      {% if r == 'admin' %}
+      <div class="nav-label">Administration</div>
+      <a href="{{ url_for('users.index') }}" class="{{ 'active' if request.blueprint == 'users' }}">Staff Accounts</a>
+      <a href="{{ url_for('email_admin.index') }}" class="{{ 'active' if request.blueprint == 'email_admin' }}">Email &amp; Logs</a>
+      {% endif %}
+    </nav>
+    <div class="user-box">
+      <div><strong>{{ g.user['full_name'] }}</strong><br><span class="muted">{{ g.user['role']|capitalize }}</span></div>
+      <a href="{{ url_for('auth.change_password') }}">Change password</a>
+      <form method="post" action="{{ url_for('auth.logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-light btn-sm" type="submit">Sign out</button>
+      </form>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <h1>{% block heading %}{{ self.title() }}{% endblock %}</h1>
+      <div class="top-actions">{% block actions %}{% endblock %}</div>
+    </header>
+    <main class="content">
+      {% include '_flash.html' %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">✚ {{ hospital_name }}</div>
+    {% include '_flash.html' %}
+    {% block auth %}{% endblock %}
+  </div>
+</div>
+{% endif %}
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
