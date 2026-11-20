@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import select, textarea, csrf %}
+{% block title %}Book appointment{% endblock %}
+{% block content %}
+<form method="post" class="card" id="bookForm" data-slots-url="{{ url_for('appointments.slots') }}" data-selected-time="{{ form.appt_time }}">
+  {{ csrf() }}
+  <div class="form-grid">
+    {{ select('Patient', 'patient_id', patient_options, form.patient_id, required=True, blank='-- Select patient --') }}
+    {{ select('Doctor', 'doctor_id', doctor_options, form.doctor_id, required=True, blank='-- Select doctor --') }}
+    <div class="field"><label for="appt_date">Date <span class="req">*</span></label>
+      <input type="date" id="appt_date" name="appt_date" value="{{ form.appt_date }}" min="{{ now.strftime('%Y-%m-%d') }}" required></div>
+    <div class="field"><label for="appt_time">Time slot <span class="req">*</span></label>
+      <select id="appt_time" name="appt_time" required><option value="">Select doctor and date first</option></select>
+      <small class="muted" id="slotHint"></small></div>
+  </div>
+  {{ textarea('Reason for visit', 'reason', form.reason, 2) }}
+  <p class="muted">Available times follow the selected doctor's weekly schedule. Booked times are hidden and cannot be double-booked. A valid patient email is required; the confirmation is sent automatically after booking.</p>
+  <div class="form-actions"><button class="btn">Book appointment</button><a class="btn btn-light" href="{{ url_for('appointments.index') }}">Cancel</a></div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('bookForm');
+  const doc = document.getElementById('doctor_id'), day = document.getElementById('appt_date');
+  const sel = document.getElementById('appt_time'), hint = document.getElementById('slotHint');
+  let preselect = form.dataset.selectedTime;
+  async function load() {
+    if (!doc.value || !day.value) return;
+    sel.innerHTML = '<option value="">Loading…</option>';
+    try {
+      const res = await fetch(form.dataset.slotsUrl + '?doctor_id=' + encodeURIComponent(doc.value) + '&date=' + encodeURIComponent(day.value));
+      const slots = await res.json();
+      sel.innerHTML = slots.length ? '<option value="">-- Choose a time --</option>' : '<option value="">No free slots</option>';
+      slots.forEach(s => { const o = document.createElement('option'); o.value = o.textContent = s; if (s === preselect) o.selected = true; sel.appendChild(o); });
+      hint.textContent = slots.length ? (slots.length + ' free slot' + (slots.length === 1 ? '' : 's') + ' available for this doctor') : 'This doctor has no working hours on the selected day, or all appointment times are already booked.';
+      preselect = '';
+    } catch (e) { sel.innerHTML = '<option value="">Could not load slots</option>'; }
+  }
+  doc.addEventListener('change', load); day.addEventListener('change', load); load();
+})();
+</script>
+{% endblock %}
