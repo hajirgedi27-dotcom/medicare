@@ -1,28 +1,30 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import csrf %}
-{% block title %}Doctors{% endblock %}
-{% block actions %}{% if g.user['role'] == 'admin' %}<a class="btn" href="{{ url_for('doctors.create') }}">+ Add doctor</a>{% endif %}{% endblock %}
+{% from '_macros.html' import pager %}
+{% block title %}Patients{% endblock %}
+{% block actions %}{% if g.user['role'] != 'doctor' %}<a class="btn" href="{{ url_for('patients.create') }}">+ Register patient</a>{% endif %}{% endblock %}
 {% block content %}
 <form method="get" class="filters card">
-  <input name="q" value="{{ q }}" placeholder="Search name or specialization…">
-  <select name="department"><option value="">All departments</option>
-    {% for d in departments %}<option value="{{ d.id }}" {{ 'selected' if dep|string == d.id|string }}>{{ d.name }}</option>{% endfor %}</select>
-  <button class="btn">Filter</button>
+  <input name="q" value="{{ q }}" placeholder="Search name, phone, patient no, ID, email…">
+  <select name="gender"><option value="">All genders</option>
+    {% for g_ in ['Male','Female','Other'] %}<option {{ 'selected' if gender == g_ }}>{{ g_ }}</option>{% endfor %}</select>
+  <select name="blood_group"><option value="">All blood groups</option>
+    {% for b in ['A+','A-','B+','B-','AB+','AB-','O+','O-'] %}<option {{ 'selected' if blood == b }}>{{ b }}</option>{% endfor %}</select>
+  <button class="btn">Search</button>
+  <a class="btn btn-light" href="{{ url_for('patients.index') }}">Reset</a>
 </form>
-<div class="card"><div class="table-wrap"><table>
-  <tr><th>Name</th><th>Department</th><th>Specialization</th><th>Phone</th><th>Email</th><th>Status</th>{% if g.user['role']=='admin' %}<th></th>{% endif %}</tr>
-  {% for d in rows %}
-  <tr>
-    <td>Dr. {{ d.full_name }}<br><small class="muted">@{{ d.username }}</small></td>
-    <td>{{ d.department or '—' }}</td><td>{{ d.specialization or '—' }}</td><td>{{ d.phone or '—' }}</td><td>{{ d.email or '—' }}</td>
-    <td><span class="badge badge-{{ 'scheduled' if d.is_active else 'cancelled' }}">{{ 'Active' if d.is_active else 'Inactive' }}</span></td>
-    {% if g.user['role']=='admin' %}
-    <td class="right actions">
-      <a class="btn btn-light btn-sm" href="{{ url_for('doctors.edit', did=d.id) }}">Edit</a>
-      <form method="post" action="{{ url_for('users.toggle', uid=d.user_id) }}">{{ csrf() }}<button class="btn btn-light btn-sm">{{ 'Deactivate' if d.is_active else 'Activate' }}</button></form>
-      <form method="post" action="{{ url_for('users.reset_password', uid=d.user_id) }}" onsubmit="return confirm('Generate a new temporary password?')">{{ csrf() }}<button class="btn btn-light btn-sm">Reset password</button></form>
-    </td>{% endif %}
-  </tr>
-  {% else %}<tr><td colspan="7" class="muted center">No doctors found.</td></tr>{% endfor %}
-</table></div></div>
+<div class="card">
+  <p class="muted">{{ total }} patient{{ '' if total == 1 else 's' }} found</p>
+  <div class="table-wrap"><table>
+    <tr><th>No.</th><th>Name</th><th>Gender</th><th>Phone</th><th>Email</th><th>Blood</th><th></th></tr>
+    {% for p in rows %}
+    <tr>
+      <td>{{ p.patient_no }}</td>
+      <td><a href="{{ url_for('patients.view', pid=p.id) }}">{{ p.full_name }}</a></td>
+      <td>{{ p.gender }}</td><td>{{ p.phone }}</td><td>{{ p.email or '—' }}</td><td>{{ p.blood_group or '—' }}</td>
+      <td class="right"><a class="btn btn-light btn-sm" href="{{ url_for('patients.view', pid=p.id) }}">Open</a></td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="muted center">No patients found.</td></tr>{% endfor %}
+  </table></div>
+  {{ pager(page, pages, 'patients.index', q=q, gender=gender, blood_group=blood) }}
+</div>
 {% endblock %}
