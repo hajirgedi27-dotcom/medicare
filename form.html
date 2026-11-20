@@ -1,11 +1,38 @@
 {% extends 'base.html' %}
-{% from '_macros.html' import field, textarea, csrf %}
-{% block title %}{{ 'Edit department' if editing else 'Add department' }}{% endblock %}
+{% from '_macros.html' import field, select, csrf %}
+{% block title %}{{ 'Edit doctor' if editing else 'Add doctor' }}{% endblock %}
 {% block content %}
-<form method="post" class="card narrow">
+<form method="post" class="card">
   {{ csrf() }}
-  {{ field('Name', 'name', d.name, required=True) }}
-  {{ textarea('Description', 'description', d.description) }}
-  <div class="form-actions"><button class="btn">Save</button><a class="btn btn-light" href="{{ url_for('departments.index') }}">Cancel</a></div>
+  <div class="form-grid">
+    {{ field('Full name', 'full_name', d.full_name, required=True) }}
+    {% if not editing %}
+      {{ field('Username', 'username', d.username, required=True) }}
+      {{ field('Password', 'password', '', type='text', help='Leave blank to auto-generate. The doctor must change it on first login.') }}
+    {% endif %}
+    {{ field('Email', 'email', d.email, type='email', help='Login details and appointment alerts are sent here.') }}
+    {{ select('Department', 'department_id', dept_options, d.department_id) }}
+    {{ field('Specialization', 'specialization', d.specialization) }}
+    {{ field('Phone', 'phone', d.phone) }}
+    {{ field('Licence no.', 'license_no', d.license_no) }}
+  </div>
+
+  <section class="card" style="margin-top:1rem; padding:1rem;">
+    <h3 style="margin-top:0;">Weekly availability</h3>
+    <p class="muted">Set the days and hours when this doctor accepts appointments. Appointment slots are generated every 30 minutes within these hours.</p>
+    <div style="display:grid;gap:.65rem;">
+      {% for day, label in weekdays %}
+      <div style="display:grid;grid-template-columns:minmax(110px,1fr) minmax(110px,1fr) minmax(110px,1fr);gap:.75rem;align-items:center;border-bottom:1px solid var(--line, #e5e7eb);padding:.55rem 0;">
+        <label style="display:flex;align-items:center;gap:.5rem;margin:0;">
+          <input type="checkbox" name="schedule_{{ day }}_enabled" {% if schedule[day].enabled %}checked{% endif %}>
+          <strong>{{ label }}</strong>
+        </label>
+        <input type="time" name="schedule_{{ day }}_start" value="{{ schedule[day].start_time }}" aria-label="{{ label }} start time">
+        <input type="time" name="schedule_{{ day }}_end" value="{{ schedule[day].end_time }}" aria-label="{{ label }} end time">
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  <div class="form-actions"><button class="btn">Save</button><a class="btn btn-light" href="{{ url_for('doctors.index') }}">Cancel</a></div>
 </form>
 {% endblock %}
