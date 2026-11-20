@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status %}
+{% block title %}Dashboard{% endblock %}
+{% block heading %}Welcome, {{ g.user['full_name'] }}{% endblock %}
+{% block content %}
+<div class="stats">
+{% if g.user['role'] == 'doctor' %}
+  <div class="stat"><span>{{ stats.today }}</span>Today's appointments</div>
+  <div class="stat"><span>{{ stats.upcoming }}</span>Upcoming</div>
+  <div class="stat"><span>{{ stats.completed }}</span>Completed</div>
+  <div class="stat"><span>{{ stats.patients }}</span>Patients seen</div>
+{% else %}
+  <div class="stat"><span>{{ stats.patients }}</span>Patients <small>+{{ stats.new_patients }} this month</small></div>
+  <div class="stat"><span>{{ stats.doctors }}</span>Active doctors</div>
+  <div class="stat"><span>{{ stats.departments }}</span>Departments</div>
+  <div class="stat accent"><span>{{ stats.today }}</span>Today's appointments</div>
+  <div class="stat"><span>{{ stats.upcoming }}</span>Upcoming</div>
+  <div class="stat"><span>{{ stats.completed }}</span>Completed</div>
+  <div class="stat"><span>{{ stats.cancelled }}</span>Cancelled</div>
+{% endif %}
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h3>Today's schedule</h3>
+    {% if todays %}
+    <div class="table-wrap"><table>
+      <tr><th>Time</th><th>Patient</th>{% if g.user['role'] != 'doctor' %}<th>Doctor</th>{% endif %}<th>Status</th>{% if g.user['role'] == 'doctor' %}<th></th>{% endif %}</tr>
+      {% for a in todays %}
+      <tr>
+        <td>{{ a.appt_time }}</td>
+        <td>{{ a.patient_name }}</td>
+        {% if g.user['role'] != 'doctor' %}<td>{{ a.doctor_name }}</td>{% endif %}
+        <td>{{ status(a.status) }}</td>
+        {% if g.user['role'] == 'doctor' %}<td><a class="btn btn-sm" href="{{ url_for('consultations.record', aid=a.id) }}">{{ 'View' if a.status == 'completed' else 'Consult' }}</a></td>{% endif %}
+      </tr>
+      {% endfor %}
+    </table></div>
+    {% else %}<p class="muted">No appointments today.</p>{% endif %}
+  </div>
+
+  {% if g.user['role'] != 'doctor' %}
+  <div class="card">
+    <h3>Appointments by department</h3>
+    {% if by_dept %}
+      {% set mx = by_dept[0].n %}
+      {% for d in by_dept %}
+      <div class="bar-row"><span>{{ d.name }}</span><div class="bar"><i style="width: {{ (d.n / mx * 100)|round }}%"></i></div><b>{{ d.n }}</b></div>
+      {% endfor %}
+    {% else %}<p class="muted">No data yet.</p>{% endif %}
+    <div class="quick">
+      <a class="btn" href="{{ url_for('appointments.create') }}">+ Book appointment</a>
+      <a class="btn btn-light" href="{{ url_for('patients.create') }}">+ Register patient</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
