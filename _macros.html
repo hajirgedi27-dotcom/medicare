@@ -1,0 +1,40 @@
+{% macro field(label, name, value='', type='text', required=False, placeholder='', help='') %}
+<div class="field">
+  <label for="{{ name }}">{{ label }}{% if required %} <span class="req">*</span>{% endif %}</label>
+  <input type="{{ type }}" id="{{ name }}" name="{{ name }}" value="{{ value or '' }}" placeholder="{{ placeholder }}" {{ 'required' if required }}>
+  {% if help %}<small class="muted">{{ help }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro select(label, name, options, value='', required=False, blank='-- Select --') %}
+<div class="field">
+  <label for="{{ name }}">{{ label }}{% if required %} <span class="req">*</span>{% endif %}</label>
+  <select id="{{ name }}" name="{{ name }}" {{ 'required' if required }}>
+    <option value="">{{ blank }}</option>
+    {% for val, text in options %}
+    <option value="{{ val }}" {{ 'selected' if value|string == val|string }}>{{ text }}</option>
+    {% endfor %}
+  </select>
+</div>
+{% endmacro %}
+
+{% macro textarea(label, name, value='', rows=3, required=False) %}
+<div class="field">
+  <label for="{{ name }}">{{ label }}{% if required %} <span class="req">*</span>{% endif %}</label>
+  <textarea id="{{ name }}" name="{{ name }}" rows="{{ rows }}" {{ 'required' if required }}>{{ value or '' }}</textarea>
+</div>
+{% endmacro %}
+
+{% macro status(s) %}<span class="badge badge-{{ s }}">{{ s|capitalize }}</span>{% endmacro %}
+
+{% macro pager(page, pages, endpoint) %}
+{% if pages > 1 %}
+<div class="pager">
+  {% if page > 1 %}<a class="btn btn-light btn-sm" href="{{ url_for(endpoint, page=page-1, **kwargs) }}">← Prev</a>{% endif %}
+  <span>Page {{ page }} of {{ pages }}</span>
+  {% if page < pages %}<a class="btn btn-light btn-sm" href="{{ url_for(endpoint, page=page+1, **kwargs) }}">Next →</a>{% endif %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
