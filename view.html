@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import status, csrf %}
+{% block title %}{{ p.full_name }}{% endblock %}
+{% block actions %}
+  {% if g.user['role'] != 'doctor' %}
+  <a class="btn" href="{{ url_for('appointments.create', patient_id=p.id) }}">Book appointment</a>
+  <a class="btn btn-light" href="{{ url_for('patients.edit', pid=p.id) }}">Edit</a>
+  {% endif %}
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="details">
+    <div><span>Patient No.</span>{{ p.patient_no }}</div>
+    <div><span>Gender</span>{{ p.gender }}</div>
+    <div><span>Date of birth</span>{{ p.date_of_birth or '—' }}</div>
+    <div><span>Phone</span>{{ p.phone }}</div>
+    <div><span>Email</span>{{ p.email or '—' }}</div>
+    <div><span>National ID</span>{{ p.national_id or '—' }}</div>
+    <div><span>Blood group</span>{{ p.blood_group or '—' }}</div>
+    <div><span>Address</span>{{ p.address or '—' }}</div>
+    <div><span>Next of kin</span>{{ p.next_of_kin or '—' }} {{ p.next_of_kin_phone or '' }}</div>
+    <div class="wide"><span>Allergies</span>{{ p.allergies or 'None recorded' }}</div>
+  </div>
+</div>
+
+<div class="card"><h3>Consultation history</h3>
+  {% for c in consults %}
+  <div class="consult">
+    <div class="consult-head"><b>{{ c.appt_date }}</b> · Dr. {{ c.doctor_name }}
+      <a class="btn btn-light btn-sm" href="{{ url_for('consultations.print_view', cid=c.id) }}" target="_blank">Print</a></div>
+    {% if c.symptoms %}<p><span class="muted">Symptoms:</span> {{ c.symptoms }}</p>{% endif %}
+    <p><span class="muted">Diagnosis:</span> {{ c.diagnosis }}</p>
+    {% if c.prescription %}<p><span class="muted">Prescription:</span> {{ c.prescription|e|replace('\n','<br>')|safe }}</p>{% endif %}
+  </div>
+  {% else %}<p class="muted">No consultations recorded yet.</p>{% endfor %}
+</div>
+
+<div class="card"><h3>Appointments</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Date</th><th>Time</th><th>Doctor</th><th>Reason</th><th>Status</th></tr>
+    {% for a in appts %}<tr><td>{{ a.appt_date }}</td><td>{{ a.appt_time }}</td><td>{{ a.doctor_name }}</td><td>{{ a.reason or '—' }}</td><td>{{ status(a.status) }}</td></tr>
+    {% else %}<tr><td colspan="5" class="muted center">No appointments.</td></tr>{% endfor %}
+  </table></div>
+</div>
+
+{% if g.user['role'] == 'admin' %}
+<form method="post" action="{{ url_for('patients.delete', pid=p.id) }}" onsubmit="return confirm('Delete this patient permanently?')">
+  {{ csrf() }}<button class="btn btn-danger btn-sm">Delete patient</button>
+</form>
+{% endif %}
+{% endblock %}
