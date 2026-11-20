@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import csrf %}
+{% block title %}Forgot password{% endblock %}
+{% block auth %}
+<p class="muted">Enter your username or email. If your account has an email address we will send a reset link.</p>
+<form method="post" class="stack">
+  {{ csrf() }}
+  <div class="field"><label>Username or email</label><input name="identifier" required autofocus></div>
+  <button class="btn btn-block">Send reset link</button>
+  <a class="center muted" href="{{ url_for('auth.login') }}">Back to sign in</a>
+</form>
+{% endblock %}
